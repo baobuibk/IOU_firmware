@@ -7,7 +7,7 @@
 #include <avr/pgmspace.h>
 #include <util/atomic.h>
 #include <util/delay.h>
-
+#include <avr/interrupt.h>
 
 static const char * const g_pcHex = "0123456789abcdef";
 
@@ -23,7 +23,7 @@ static const char * const g_pcHex = "0123456789abcdef";
 
 
 #ifdef	UART0_CONSOLE
-	#define CONSOLE_UART_WRITE(pdata, len)	usart1_send_array(pdata, len)
+	#define CONSOLE_UART_WRITE(pdata, len)	usart0_send_array(pdata, len)
 #elif    
 	#ifdef UART1_CONSOLE
 		#define CONSOLE_UART_WRITE(pdata, len)	usart1_send_array(pdata, len)
@@ -88,9 +88,17 @@ void usart0_init(void) {
 	UBRR0L=51;
 	UCSR0B |= (1<<RXEN)|(1<<TXEN)|(1<<RXCIE);					//enable TX, RX, RX interrupt
 	UCSR0C |= (1<<UCSZ1) | (1<<UCSZ0);
+	sei();
 }
 
 void usart0_send_char( char c) {
+//	if ((UCSR0B & (1 << TXC)) != (1 << TXC))
+//	{
+//		UDR0 = c;
+//		 UCSR0B |= 1 << TXC; 
+//		 return;
+//	}
+	
     while(rbuffer_full(&p_UART0_meta->rb_tx));
     rbuffer_insert(c, &p_UART0_meta->rb_tx);
     UCSR0B |= 1 << UDRE;                   // Enable Tx buffer empty interrupt 
@@ -137,6 +145,11 @@ void usart0_close() {
 	UCSR0B &= ~( (1<<RXEN)|(1<<TXEN)|(1<<RXCIE) | (1<<	UDRIE));					//disable TX, RX, RX interrupt
 	UCSR0C &= (1<<UCSZ1) | (1<<UCSZ0);
 }
+
+volatile ringbuffer_t * uart_get_uart0_rx_buffer_address(void)
+{
+	return &(p_UART0_meta->rb_rx);
+}
 #endif
 
 
@@ -152,6 +165,7 @@ void usart1_init(void) {
 }
 
 void usart1_send_char( char c) {
+	
 	while(rbuffer_full(&p_UART1_meta->rb_tx));
 	rbuffer_insert(c, &p_UART1_meta->rb_tx);
 	UCSR1B |= 1 << UDRE;                   // Enable Tx buffer empty interrupt
@@ -213,6 +227,7 @@ volatile ringbuffer_t * uart_get_uart1_rx_buffer_address(void)
 ISR(USART0_RX_vect) {
 	
    char	data = UDR0;
+
     if(!rbuffer_full(&p_UART0_meta->rb_rx)) {
 	    rbuffer_insert(data, &p_UART0_meta->rb_rx);
 	    p_UART0_meta->usart_error = UCSR0A & USART_RX_ERROR_MASK ;
@@ -242,7 +257,7 @@ ISR(USART1_RX_vect) {
 
     }
     else {
-	    p_UART1_meta->usart_error = ((UCSR1A & USART_RX_ERROR_MASK) | USART_BUFFER_OVERFLOW>>8);
+	    p_UART1_meta->usart_error = ((UCSR1A & USART_RX_ERROR_MASK) | USART_BUFFER_OVERFLOW);
     }   
 }
 ISR(USART1_UDRE_vect) {
@@ -297,7 +312,7 @@ ISR(USART1_UDRE_vect) {
 void
 UARTvprintf(const char *pcString, va_list vaArgP)
 {
-    uint32_t ui32Idx, ui32Value, ui32Pos, ui32Count, ui32Base, ui32Neg;
+   volatile uint32_t ui32Idx, ui32Value, ui32Pos, ui32Count, ui32Base, ui32Neg;
     char *pcStr, pcBuf[16], cFill;
 
     //
@@ -418,7 +433,7 @@ again:
                     //
                     // Get the value from the varargs.
                     //
-                    ui32Value = va_arg(vaArgP, uint32_t);
+                    ui32Value = va_arg(vaArgP, uint16_t);
 
                     //
                     // Reset the buffer position.
@@ -509,7 +524,7 @@ again:
                     //
                     // Get the value from the varargs.
                     //
-                    ui32Value = va_arg(vaArgP, uint32_t);
+                    ui32Value = va_arg(vaArgP, uint16_t);
 
                     //
                     // Reset the buffer position.
@@ -546,7 +561,7 @@ again:
                     //
                     // Get the value from the varargs.
                     //
-                    ui32Value = va_arg(vaArgP, uint32_t);
+                    ui32Value = va_arg(vaArgP, uint16_t);
 
                     //
                     // Reset the buffer position.

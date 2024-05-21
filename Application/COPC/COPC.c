@@ -32,7 +32,8 @@ static COPC_TaskContextTypedef           s_COPC_task_context =
 
 
 void	COPC_init(void)
-{
+{	
+	usart1_init();
 	fsp_init(PDU_ADDRESS);
 	p_COPCBuffer = uart_get_uart1_rx_buffer_address();
 	s_pCOPC_Sfp_Payload = (COPC_Sfp_Payload_t *)(&s_COPC_FspPacket.payload);
@@ -43,7 +44,7 @@ static void COPC_task_update(void)
 	char rxData;
 	while (! rbuffer_empty(p_COPCBuffer))
 	{
-		usart0_send_string("received\r\n");
+
 		rxData = rbuffer_remove(p_COPCBuffer);
 		switch ( fsp_decode(rxData,&s_COPC_FspPacket))
 		{
@@ -57,9 +58,7 @@ static void COPC_task_update(void)
 					{
 						
 					}
-				}
-		
-            
+				}	            
 	            break;
             case FSP_PKT_INVALID:
 				

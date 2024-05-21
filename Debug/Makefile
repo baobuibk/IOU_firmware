@@ -37,11 +37,22 @@ SUBDIRS :=  \
 ../Application/LED \
 ../Application/Common \
 ../Application/COPC \
+../Application/CMDLine \
+../Application/WATCHDOG \
+../Application/Temperature \
 ../Application/SYS \
 ../BSP \
 ../Application \
-../BSP/PDU_UART \
-../BSP/PDU_Timer \
+../BSP/ADC \
+../BSP/TWI \
+../BSP/SPI \
+../BSP/UART \
+../BSP/Timer \
+../Devices \
+../Devices/MCP4921 \
+../Devices/TPL5010 \
+../Devices/TEC \
+../Devices/NTC \
 ../ThirdParty \
 ../Scheduler \
 ../ThirdParty/libsfp
@@ -49,12 +60,23 @@ SUBDIRS :=  \
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS +=  \
+../Application/CMDLine/cmdline.c \
+../Application/CMDLine/command.c \
 ../Application/COPC/COPC.c \
 ../Application/LED/status_led.c \
 ../Application/main.c \
 ../Application/SYS/sys.c \
-../BSP/PDU_Timer/PDU_timer.c \
-../BSP/PDU_UART/uart.c \
+../Application/Temperature/temperature.c \
+../Application/WATCHDOG/watchdog.c \
+../BSP/ADC/AD.c \
+../BSP/SPI/spi.c \
+../BSP/Timer/timer.c \
+../BSP/TWI/i2c.c \
+../BSP/UART/uart.c \
+../Devices/MCP4921/MCP4921.c \
+../Devices/NTC/ntc_10k.c \
+../Devices/TEC/TEC.c \
+../Devices/TPL5010/TPL5010.c \
 ../Scheduler/scheduler.c \
 ../ThirdParty/libsfp/crc16.c \
 ../ThirdParty/libsfp/fsp.c
@@ -67,52 +89,96 @@ ASM_SRCS +=
 
 
 OBJS +=  \
+Application/CMDLine/cmdline.o \
+Application/CMDLine/command.o \
 Application/COPC/COPC.o \
 Application/LED/status_led.o \
 Application/main.o \
 Application/SYS/sys.o \
-BSP/PDU_Timer/PDU_timer.o \
-BSP/PDU_UART/uart.o \
+Application/Temperature/temperature.o \
+Application/WATCHDOG/watchdog.o \
+BSP/ADC/AD.o \
+BSP/SPI/spi.o \
+BSP/Timer/timer.o \
+BSP/TWI/i2c.o \
+BSP/UART/uart.o \
+Devices/MCP4921/MCP4921.o \
+Devices/NTC/ntc_10k.o \
+Devices/TEC/TEC.o \
+Devices/TPL5010/TPL5010.o \
 Scheduler/scheduler.o \
 ThirdParty/libsfp/crc16.o \
 ThirdParty/libsfp/fsp.o
 
 OBJS_AS_ARGS +=  \
+Application/CMDLine/cmdline.o \
+Application/CMDLine/command.o \
 Application/COPC/COPC.o \
 Application/LED/status_led.o \
 Application/main.o \
 Application/SYS/sys.o \
-BSP/PDU_Timer/PDU_timer.o \
-BSP/PDU_UART/uart.o \
+Application/Temperature/temperature.o \
+Application/WATCHDOG/watchdog.o \
+BSP/ADC/AD.o \
+BSP/SPI/spi.o \
+BSP/Timer/timer.o \
+BSP/TWI/i2c.o \
+BSP/UART/uart.o \
+Devices/MCP4921/MCP4921.o \
+Devices/NTC/ntc_10k.o \
+Devices/TEC/TEC.o \
+Devices/TPL5010/TPL5010.o \
 Scheduler/scheduler.o \
 ThirdParty/libsfp/crc16.o \
 ThirdParty/libsfp/fsp.o
 
 C_DEPS +=  \
+Application/CMDLine/cmdline.d \
+Application/CMDLine/command.d \
 Application/COPC/COPC.d \
 Application/LED/status_led.d \
 Application/main.d \
 Application/SYS/sys.d \
-BSP/PDU_Timer/PDU_timer.d \
-BSP/PDU_UART/uart.d \
+Application/Temperature/temperature.d \
+Application/WATCHDOG/watchdog.d \
+BSP/ADC/AD.d \
+BSP/SPI/spi.d \
+BSP/Timer/timer.d \
+BSP/TWI/i2c.d \
+BSP/UART/uart.d \
+Devices/MCP4921/MCP4921.d \
+Devices/NTC/ntc_10k.d \
+Devices/TEC/TEC.d \
+Devices/TPL5010/TPL5010.d \
 Scheduler/scheduler.d \
 ThirdParty/libsfp/crc16.d \
 ThirdParty/libsfp/fsp.d
 
 C_DEPS_AS_ARGS +=  \
+Application/CMDLine/cmdline.d \
+Application/CMDLine/command.d \
 Application/COPC/COPC.d \
 Application/LED/status_led.d \
 Application/main.d \
 Application/SYS/sys.d \
-BSP/PDU_Timer/PDU_timer.d \
-BSP/PDU_UART/uart.d \
+Application/Temperature/temperature.d \
+Application/WATCHDOG/watchdog.d \
+BSP/ADC/AD.d \
+BSP/SPI/spi.d \
+BSP/Timer/timer.d \
+BSP/TWI/i2c.d \
+BSP/UART/uart.d \
+Devices/MCP4921/MCP4921.d \
+Devices/NTC/ntc_10k.d \
+Devices/TEC/TEC.d \
+Devices/TPL5010/TPL5010.d \
 Scheduler/scheduler.d \
 ThirdParty/libsfp/crc16.d \
 ThirdParty/libsfp/fsp.d
 
-OUTPUT_FILE_PATH +=PDUFirmware.elf
+OUTPUT_FILE_PATH +=IOUFirmware.elf
 
-OUTPUT_FILE_PATH_AS_ARGS +=PDUFirmware.elf
+OUTPUT_FILE_PATH_AS_ARGS +=IOUFirmware.elf
 
 ADDITIONAL_DEPENDENCIES:=
 
@@ -124,66 +190,143 @@ LINKER_SCRIPT_DEP+=
 
 
 # AVR32/GNU C Compiler
+Application/CMDLine/cmdline.o: ../Application/CMDLine/cmdline.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 5.4.0
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=STK600_MEGA  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../Application/Common/inc" -I"../BSP" -I"../Scheduler" -I"../Application/LED" -I"../Application/SYS" -I"../Application/COPC" -I"../ThirdParty/libsfp" -I"../BSP/UART" -I"../BSP/Timer" -I"../BSP/SPI" -I"../Devices/MCP4921" -I"../BSP/TWI" -I"../Application/CMDLine" -I"../Devices/NTC" -I"../BSP/ADC" -I"../Devices/TEC" -I"../Application/Temperature"  -O0 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g3 -Wall -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+Application/CMDLine/command.o: ../Application/CMDLine/command.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 5.4.0
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=STK600_MEGA  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../Application/Common/inc" -I"../BSP" -I"../Scheduler" -I"../Application/LED" -I"../Application/SYS" -I"../Application/COPC" -I"../ThirdParty/libsfp" -I"../BSP/UART" -I"../BSP/Timer" -I"../BSP/SPI" -I"../Devices/MCP4921" -I"../BSP/TWI" -I"../Application/CMDLine" -I"../Devices/NTC" -I"../BSP/ADC" -I"../Devices/TEC" -I"../Application/Temperature"  -O0 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g3 -Wall -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
 Application/COPC/COPC.o: ../Application/COPC/COPC.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 5.4.0
-	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=STK600_MEGA  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../Application/Common/inc" -I"../BSP/PDU_Timer" -I"../BSP" -I"../Scheduler" -I"../Application/LED" -I"../Application/SYS" -I"../BSP/PDU_UART" -I"../Application/COPC" -I"../ThirdParty/libsfp"  -O1 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g3 -Wall -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=STK600_MEGA  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../Application/Common/inc" -I"../BSP" -I"../Scheduler" -I"../Application/LED" -I"../Application/SYS" -I"../Application/COPC" -I"../ThirdParty/libsfp" -I"../BSP/UART" -I"../BSP/Timer" -I"../BSP/SPI" -I"../Devices/MCP4921" -I"../BSP/TWI" -I"../Application/CMDLine" -I"../Devices/NTC" -I"../BSP/ADC" -I"../Devices/TEC" -I"../Application/Temperature"  -O0 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g3 -Wall -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
 	@echo Finished building: $<
 	
 
 Application/LED/status_led.o: ../Application/LED/status_led.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 5.4.0
-	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=STK600_MEGA  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../Application/Common/inc" -I"../BSP/PDU_Timer" -I"../BSP" -I"../Scheduler" -I"../Application/LED" -I"../Application/SYS" -I"../BSP/PDU_UART" -I"../Application/COPC" -I"../ThirdParty/libsfp"  -O1 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g3 -Wall -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=STK600_MEGA  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../Application/Common/inc" -I"../BSP" -I"../Scheduler" -I"../Application/LED" -I"../Application/SYS" -I"../Application/COPC" -I"../ThirdParty/libsfp" -I"../BSP/UART" -I"../BSP/Timer" -I"../BSP/SPI" -I"../Devices/MCP4921" -I"../BSP/TWI" -I"../Application/CMDLine" -I"../Devices/NTC" -I"../BSP/ADC" -I"../Devices/TEC" -I"../Application/Temperature"  -O0 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g3 -Wall -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
 	@echo Finished building: $<
 	
 
 Application/main.o: ../Application/main.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 5.4.0
-	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=STK600_MEGA  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../Application/Common/inc" -I"../BSP/PDU_Timer" -I"../BSP" -I"../Scheduler" -I"../Application/LED" -I"../Application/SYS" -I"../BSP/PDU_UART" -I"../Application/COPC" -I"../ThirdParty/libsfp"  -O1 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g3 -Wall -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=STK600_MEGA  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../Application/Common/inc" -I"../BSP" -I"../Scheduler" -I"../Application/LED" -I"../Application/SYS" -I"../Application/COPC" -I"../ThirdParty/libsfp" -I"../BSP/UART" -I"../BSP/Timer" -I"../BSP/SPI" -I"../Devices/MCP4921" -I"../BSP/TWI" -I"../Application/CMDLine" -I"../Devices/NTC" -I"../BSP/ADC" -I"../Devices/TEC" -I"../Application/Temperature"  -O0 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g3 -Wall -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
 	@echo Finished building: $<
 	
 
 Application/SYS/sys.o: ../Application/SYS/sys.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 5.4.0
-	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=STK600_MEGA  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../Application/Common/inc" -I"../BSP/PDU_Timer" -I"../BSP" -I"../Scheduler" -I"../Application/LED" -I"../Application/SYS" -I"../BSP/PDU_UART" -I"../Application/COPC" -I"../ThirdParty/libsfp"  -O1 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g3 -Wall -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=STK600_MEGA  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../Application/Common/inc" -I"../BSP" -I"../Scheduler" -I"../Application/LED" -I"../Application/SYS" -I"../Application/COPC" -I"../ThirdParty/libsfp" -I"../BSP/UART" -I"../BSP/Timer" -I"../BSP/SPI" -I"../Devices/MCP4921" -I"../BSP/TWI" -I"../Application/CMDLine" -I"../Devices/NTC" -I"../BSP/ADC" -I"../Devices/TEC" -I"../Application/Temperature"  -O0 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g3 -Wall -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
 	@echo Finished building: $<
 	
 
-BSP/PDU_Timer/PDU_timer.o: ../BSP/PDU_Timer/PDU_timer.c
+Application/Temperature/temperature.o: ../Application/Temperature/temperature.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 5.4.0
-	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=STK600_MEGA  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../Application/Common/inc" -I"../BSP/PDU_Timer" -I"../BSP" -I"../Scheduler" -I"../Application/LED" -I"../Application/SYS" -I"../BSP/PDU_UART" -I"../Application/COPC" -I"../ThirdParty/libsfp"  -O1 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g3 -Wall -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=STK600_MEGA  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../Application/Common/inc" -I"../BSP" -I"../Scheduler" -I"../Application/LED" -I"../Application/SYS" -I"../Application/COPC" -I"../ThirdParty/libsfp" -I"../BSP/UART" -I"../BSP/Timer" -I"../BSP/SPI" -I"../Devices/MCP4921" -I"../BSP/TWI" -I"../Application/CMDLine" -I"../Devices/NTC" -I"../BSP/ADC" -I"../Devices/TEC" -I"../Application/Temperature"  -O0 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g3 -Wall -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
 	@echo Finished building: $<
 	
 
-BSP/PDU_UART/uart.o: ../BSP/PDU_UART/uart.c
+Application/WATCHDOG/watchdog.o: ../Application/WATCHDOG/watchdog.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 5.4.0
-	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=STK600_MEGA  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../Application/Common/inc" -I"../BSP/PDU_Timer" -I"../BSP" -I"../Scheduler" -I"../Application/LED" -I"../Application/SYS" -I"../BSP/PDU_UART" -I"../Application/COPC" -I"../ThirdParty/libsfp"  -O1 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g3 -Wall -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=STK600_MEGA  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../Application/Common/inc" -I"../BSP" -I"../Scheduler" -I"../Application/LED" -I"../Application/SYS" -I"../Application/COPC" -I"../ThirdParty/libsfp" -I"../BSP/UART" -I"../BSP/Timer" -I"../BSP/SPI" -I"../Devices/MCP4921" -I"../BSP/TWI" -I"../Application/CMDLine" -I"../Devices/NTC" -I"../BSP/ADC" -I"../Devices/TEC" -I"../Application/Temperature"  -O0 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g3 -Wall -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+BSP/ADC/AD.o: ../BSP/ADC/AD.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 5.4.0
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=STK600_MEGA  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../Application/Common/inc" -I"../BSP" -I"../Scheduler" -I"../Application/LED" -I"../Application/SYS" -I"../Application/COPC" -I"../ThirdParty/libsfp" -I"../BSP/UART" -I"../BSP/Timer" -I"../BSP/SPI" -I"../Devices/MCP4921" -I"../BSP/TWI" -I"../Application/CMDLine" -I"../Devices/NTC" -I"../BSP/ADC" -I"../Devices/TEC" -I"../Application/Temperature"  -O0 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g3 -Wall -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+BSP/SPI/spi.o: ../BSP/SPI/spi.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 5.4.0
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=STK600_MEGA  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../Application/Common/inc" -I"../BSP" -I"../Scheduler" -I"../Application/LED" -I"../Application/SYS" -I"../Application/COPC" -I"../ThirdParty/libsfp" -I"../BSP/UART" -I"../BSP/Timer" -I"../BSP/SPI" -I"../Devices/MCP4921" -I"../BSP/TWI" -I"../Application/CMDLine" -I"../Devices/NTC" -I"../BSP/ADC" -I"../Devices/TEC" -I"../Application/Temperature"  -O0 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g3 -Wall -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+BSP/Timer/timer.o: ../BSP/Timer/timer.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 5.4.0
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=STK600_MEGA  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../Application/Common/inc" -I"../BSP" -I"../Scheduler" -I"../Application/LED" -I"../Application/SYS" -I"../Application/COPC" -I"../ThirdParty/libsfp" -I"../BSP/UART" -I"../BSP/Timer" -I"../BSP/SPI" -I"../Devices/MCP4921" -I"../BSP/TWI" -I"../Application/CMDLine" -I"../Devices/NTC" -I"../BSP/ADC" -I"../Devices/TEC" -I"../Application/Temperature"  -O0 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g3 -Wall -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+BSP/TWI/i2c.o: ../BSP/TWI/i2c.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 5.4.0
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=STK600_MEGA  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../Application/Common/inc" -I"../BSP" -I"../Scheduler" -I"../Application/LED" -I"../Application/SYS" -I"../Application/COPC" -I"../ThirdParty/libsfp" -I"../BSP/UART" -I"../BSP/Timer" -I"../BSP/SPI" -I"../Devices/MCP4921" -I"../BSP/TWI" -I"../Application/CMDLine" -I"../Devices/NTC" -I"../BSP/ADC" -I"../Devices/TEC" -I"../Application/Temperature"  -O0 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g3 -Wall -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+BSP/UART/uart.o: ../BSP/UART/uart.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 5.4.0
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=STK600_MEGA  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../Application/Common/inc" -I"../BSP" -I"../Scheduler" -I"../Application/LED" -I"../Application/SYS" -I"../Application/COPC" -I"../ThirdParty/libsfp" -I"../BSP/UART" -I"../BSP/Timer" -I"../BSP/SPI" -I"../Devices/MCP4921" -I"../BSP/TWI" -I"../Application/CMDLine" -I"../Devices/NTC" -I"../BSP/ADC" -I"../Devices/TEC" -I"../Application/Temperature"  -O0 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g3 -Wall -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+Devices/MCP4921/MCP4921.o: ../Devices/MCP4921/MCP4921.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 5.4.0
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=STK600_MEGA  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../Application/Common/inc" -I"../BSP" -I"../Scheduler" -I"../Application/LED" -I"../Application/SYS" -I"../Application/COPC" -I"../ThirdParty/libsfp" -I"../BSP/UART" -I"../BSP/Timer" -I"../BSP/SPI" -I"../Devices/MCP4921" -I"../BSP/TWI" -I"../Application/CMDLine" -I"../Devices/NTC" -I"../BSP/ADC" -I"../Devices/TEC" -I"../Application/Temperature"  -O0 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g3 -Wall -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+Devices/NTC/ntc_10k.o: ../Devices/NTC/ntc_10k.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 5.4.0
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=STK600_MEGA  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../Application/Common/inc" -I"../BSP" -I"../Scheduler" -I"../Application/LED" -I"../Application/SYS" -I"../Application/COPC" -I"../ThirdParty/libsfp" -I"../BSP/UART" -I"../BSP/Timer" -I"../BSP/SPI" -I"../Devices/MCP4921" -I"../BSP/TWI" -I"../Application/CMDLine" -I"../Devices/NTC" -I"../BSP/ADC" -I"../Devices/TEC" -I"../Application/Temperature"  -O0 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g3 -Wall -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+Devices/TEC/TEC.o: ../Devices/TEC/TEC.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 5.4.0
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=STK600_MEGA  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../Application/Common/inc" -I"../BSP" -I"../Scheduler" -I"../Application/LED" -I"../Application/SYS" -I"../Application/COPC" -I"../ThirdParty/libsfp" -I"../BSP/UART" -I"../BSP/Timer" -I"../BSP/SPI" -I"../Devices/MCP4921" -I"../BSP/TWI" -I"../Application/CMDLine" -I"../Devices/NTC" -I"../BSP/ADC" -I"../Devices/TEC" -I"../Application/Temperature"  -O0 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g3 -Wall -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+Devices/TPL5010/TPL5010.o: ../Devices/TPL5010/TPL5010.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 5.4.0
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=STK600_MEGA  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../Application/Common/inc" -I"../BSP" -I"../Scheduler" -I"../Application/LED" -I"../Application/SYS" -I"../Application/COPC" -I"../ThirdParty/libsfp" -I"../BSP/UART" -I"../BSP/Timer" -I"../BSP/SPI" -I"../Devices/MCP4921" -I"../BSP/TWI" -I"../Application/CMDLine" -I"../Devices/NTC" -I"../BSP/ADC" -I"../Devices/TEC" -I"../Application/Temperature"  -O0 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g3 -Wall -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
 	@echo Finished building: $<
 	
 
 Scheduler/scheduler.o: ../Scheduler/scheduler.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 5.4.0
-	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=STK600_MEGA  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../Application/Common/inc" -I"../BSP/PDU_Timer" -I"../BSP" -I"../Scheduler" -I"../Application/LED" -I"../Application/SYS" -I"../BSP/PDU_UART" -I"../Application/COPC" -I"../ThirdParty/libsfp"  -O1 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g3 -Wall -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=STK600_MEGA  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../Application/Common/inc" -I"../BSP" -I"../Scheduler" -I"../Application/LED" -I"../Application/SYS" -I"../Application/COPC" -I"../ThirdParty/libsfp" -I"../BSP/UART" -I"../BSP/Timer" -I"../BSP/SPI" -I"../Devices/MCP4921" -I"../BSP/TWI" -I"../Application/CMDLine" -I"../Devices/NTC" -I"../BSP/ADC" -I"../Devices/TEC" -I"../Application/Temperature"  -O0 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g3 -Wall -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
 	@echo Finished building: $<
 	
 
 ThirdParty/libsfp/crc16.o: ../ThirdParty/libsfp/crc16.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 5.4.0
-	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=STK600_MEGA  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../Application/Common/inc" -I"../BSP/PDU_Timer" -I"../BSP" -I"../Scheduler" -I"../Application/LED" -I"../Application/SYS" -I"../BSP/PDU_UART" -I"../Application/COPC" -I"../ThirdParty/libsfp"  -O1 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g3 -Wall -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=STK600_MEGA  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../Application/Common/inc" -I"../BSP" -I"../Scheduler" -I"../Application/LED" -I"../Application/SYS" -I"../Application/COPC" -I"../ThirdParty/libsfp" -I"../BSP/UART" -I"../BSP/Timer" -I"../BSP/SPI" -I"../Devices/MCP4921" -I"../BSP/TWI" -I"../Application/CMDLine" -I"../Devices/NTC" -I"../BSP/ADC" -I"../Devices/TEC" -I"../Application/Temperature"  -O0 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g3 -Wall -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
 	@echo Finished building: $<
 	
 
 ThirdParty/libsfp/fsp.o: ../ThirdParty/libsfp/fsp.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 5.4.0
-	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=STK600_MEGA  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../Application/Common/inc" -I"../BSP/PDU_Timer" -I"../BSP" -I"../Scheduler" -I"../Application/LED" -I"../Application/SYS" -I"../BSP/PDU_UART" -I"../Application/COPC" -I"../ThirdParty/libsfp"  -O1 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g3 -Wall -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=STK600_MEGA  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../Application/Common/inc" -I"../BSP" -I"../Scheduler" -I"../Application/LED" -I"../Application/SYS" -I"../Application/COPC" -I"../ThirdParty/libsfp" -I"../BSP/UART" -I"../BSP/Timer" -I"../BSP/SPI" -I"../Devices/MCP4921" -I"../BSP/TWI" -I"../Application/CMDLine" -I"../Devices/NTC" -I"../BSP/ADC" -I"../Devices/TEC" -I"../Application/Temperature"  -O0 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g3 -Wall -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
 	@echo Finished building: $<
 	
 
@@ -213,13 +356,13 @@ all: $(OUTPUT_FILE_PATH) $(ADDITIONAL_DEPENDENCIES)
 $(OUTPUT_FILE_PATH): $(OBJS) $(USER_OBJS) $(OUTPUT_FILE_DEP) $(LIB_DEP) $(LINKER_SCRIPT_DEP)
 	@echo Building target: $@
 	@echo Invoking: AVR/GNU Linker : 5.4.0
-	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE) -o$(OUTPUT_FILE_PATH_AS_ARGS) $(OBJS_AS_ARGS) $(USER_OBJS) $(LIBS) -Wl,-Map="PDUFirmware.map" -Wl,--start-group -Wl,-lm  -Wl,--end-group -Wl,--gc-sections -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -Wl,--relax  
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE) -o$(OUTPUT_FILE_PATH_AS_ARGS) $(OBJS_AS_ARGS) $(USER_OBJS) $(LIBS) -Wl,-Map="IOUFirmware.map" -Wl,--start-group -Wl,-lm  -Wl,--end-group -Wl,--gc-sections -mmcu=atmega64 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega64" -Wl,--relax  
 	@echo Finished building target: $@
-	"C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-objcopy.exe" -O ihex -R .eeprom -R .fuse -R .lock -R .signature -R .user_signatures  "PDUFirmware.elf" "PDUFirmware.hex"
-	"C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-objcopy.exe" -j .eeprom  --set-section-flags=.eeprom=alloc,load --change-section-lma .eeprom=0  --no-change-warnings -O ihex "PDUFirmware.elf" "PDUFirmware.eep" || exit 0
-	"C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-objdump.exe" -h -S "PDUFirmware.elf" > "PDUFirmware.lss"
-	"C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-objcopy.exe" -O srec -R .eeprom -R .fuse -R .lock -R .signature -R .user_signatures "PDUFirmware.elf" "PDUFirmware.srec"
-	"C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-size.exe" "PDUFirmware.elf"
+	"C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-objcopy.exe" -O ihex -R .eeprom -R .fuse -R .lock -R .signature -R .user_signatures  "IOUFirmware.elf" "IOUFirmware.hex"
+	"C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-objcopy.exe" -j .eeprom  --set-section-flags=.eeprom=alloc,load --change-section-lma .eeprom=0  --no-change-warnings -O ihex "IOUFirmware.elf" "IOUFirmware.eep" || exit 0
+	"C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-objdump.exe" -h -S "IOUFirmware.elf" > "IOUFirmware.lss"
+	"C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-objcopy.exe" -O srec -R .eeprom -R .fuse -R .lock -R .signature -R .user_signatures "IOUFirmware.elf" "IOUFirmware.srec"
+	"C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-size.exe" "IOUFirmware.elf"
 	
 	
 
@@ -231,5 +374,5 @@ $(OUTPUT_FILE_PATH): $(OBJS) $(USER_OBJS) $(OUTPUT_FILE_DEP) $(LIB_DEP) $(LINKER
 clean:
 	-$(RM) $(OBJS_AS_ARGS) $(EXECUTABLES)  
 	-$(RM) $(C_DEPS_AS_ARGS)   
-	rm -rf "PDUFirmware.elf" "PDUFirmware.a" "PDUFirmware.hex" "PDUFirmware.lss" "PDUFirmware.eep" "PDUFirmware.map" "PDUFirmware.srec" "PDUFirmware.usersignatures"
+	rm -rf "IOUFirmware.elf" "IOUFirmware.a" "IOUFirmware.hex" "IOUFirmware.lss" "IOUFirmware.eep" "IOUFirmware.map" "IOUFirmware.srec" "IOUFirmware.usersignatures"
 	

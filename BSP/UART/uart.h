@@ -15,23 +15,23 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
-#include "PDU_board.h"
+#include "IOU_board.h"
 // ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
 // DEFINE RING BUFFER SIZE; MUST BE 2, 4, 8, 16, 32, 64 or 128
-#define RBUFFER_SIZE 32  
+#define RBUFFER_SIZE 128  
 
 // ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
-// UNCOMMENT TO ENABLE USARTn
+
 #define USART0_ENABLE
 #define USART1_ENABLE
 #define UART0_CONSOLE
 
 
 // ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
-#define USART_BUFFER_OVERFLOW    0x6400      // ==USART_BUFOVF_bm
-#define USART_FRAME_ERROR        0x0400      // ==USART_FERR_bm
-#define USART_PARITY_ERROR       0x0200      // ==USART_PERR_bm
-#define USART_NO_DATA            0x0100      
+#define USART_BUFFER_OVERFLOW    1 << 8      // ==USART_BUFOVF_bm
+#define USART_FRAME_ERROR        1 << 9      // ==USART_FERR_bm
+#define USART_PARITY_ERROR       1 << 10      // ==USART_PERR_bm
+#define USART_NO_DATA            1 << 11     
 
 // ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
 #define BAUD_RATE(BAUD_RATE) ((float)(F_CPU * 64 / (16 * (float)BAUD_RATE)) + 0.5)
@@ -70,6 +70,7 @@ void	usart0_send_string_P(const char* chr);
 uint8_t usart0_rx_count(void);
 uint16_t usart0_read_char(void);
 void	usart0_close(void);
+volatile ringbuffer_t * uart_get_uart0_rx_buffer_address(void);
 
 void	usart1_init(void);			//init at 9600 bps, FCPU = 8Mhz
 void	usart1_send_char( char c);

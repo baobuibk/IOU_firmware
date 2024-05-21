@@ -8,7 +8,7 @@
 #include <string.h>
 #include <avr/interrupt.h>
 #include "scheduler.h"
-#include "PDU_timer.h"
+#include "timer.h"
 
 typedef struct SCH_TaskContextTypedef
 {
@@ -33,8 +33,8 @@ typedef struct SCH_TimerContextTypedef
 #define MAX_TIMERS                      5
 
 /* Private macro -------------------------------------------------------------*/
-#define SCH_START                       PDU_timer_start_timer0()
-#define SCH_STOP                        PDU_timer_stop_timer0()
+#define SCH_START                       timer_start_timer0()
+#define SCH_STOP                        timer_stop_timer0()
 
 /* Private variables ---------------------------------------------------------*/
 static SCH_TaskContextTypedef   s_TaskContext[MAX_TASK];
@@ -69,7 +69,7 @@ void SCH_Initialize(void)
   memset((uint8_t*)&s_SoftTimers[0], RESET, (sizeof(uint32_t) * SCH_TIM_LAST));
 
     // Initialize Schedular context
-  PDU_timer_timer0_init();
+  timer_timer0_init();
 }
 
 

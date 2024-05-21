@@ -6,7 +6,7 @@
  */ 
 #include "status_led.h"
 #include "scheduler.h"
-#include "PDU_board.h"
+#include "IOU_board.h"
 
 /* Private define ------------------------------------------------------------*/
 #define	POWERUP_PERIOD	500
@@ -68,22 +68,22 @@ void status_led_init(void)
 	
 }
 
-static void status_led_led1_on(void)
+static void status_led_led1_off(void)
 {
 	LED1_DATA_PORT |= ((1 << LED1_PIN));	
 }
 
-static void status_led_led1_off(void)
+static void status_led_led1_on(void)
 {
 	LED1_DATA_PORT &= ~((1 << LED1_PIN));
 }
 
-static void status_led_led2_on(void)
+static void status_led_led2_off(void)
 {
 	LED2_DATA_PORT |= ((1 << LED2_PIN));
 }
 
-static void status_led_led2_off(void)
+static void status_led_led2_on(void)
 {
 	LED2_DATA_PORT &= ~((1 << LED2_PIN));
 }

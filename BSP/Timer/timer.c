@@ -5,9 +5,9 @@
  *  Author: Admin
  */ 
 #include <avr/interrupt.h>
-#include "PDU_timer.h"
+#include "timer.h"
 
-void	PDU_timer_start_timer0(void)
+void	timer_start_timer0(void)
 {
 
 	TCCR0 |= (1 << CS02);	//prescaler = 64
@@ -17,11 +17,11 @@ void	PDU_timer_start_timer0(void)
 			  // enable global interrupts
 	sei();
 }
-void	PDU_timer_stop_timer0(void)
+void	timer_stop_timer0(void)
 {
 	TCCR0 &= ~((1 << CS02) | (1 << CS01) | (1 << CS00));	
 }
-void PDU_timer_timer0_init(void)
+void timer_timer0_init(void)
 {
 	  // set up timer with prescaler = 64 and CTC mode
 	  TCCR0 |= (1 << WGM01);

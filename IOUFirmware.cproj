@@ -13,7 +13,7 @@
     <OutputFileExtension>.elf</OutputFileExtension>
     <OutputDirectory>$(MSBuildProjectDirectory)\$(Configuration)</OutputDirectory>
     <AssemblyName>PDUFirmware</AssemblyName>
-    <Name>PDUFirmware</Name>
+    <Name>IOUFirmware</Name>
     <RootNamespace>PDUFirmware</RootNamespace>
     <ToolchainFlavour>Native</ToolchainFlavour>
     <KeepTimersRunning>true</KeepTimersRunning>
@@ -155,17 +155,24 @@
       <Value>../src</Value>
       <Value>../src/config</Value>
       <Value>../Application/Common/inc</Value>
-      <Value>../BSP/PDU_Timer</Value>
       <Value>../BSP</Value>
       <Value>../Scheduler</Value>
       <Value>../Application/LED</Value>
       <Value>../Application/SYS</Value>
-      <Value>../BSP/PDU_UART</Value>
       <Value>../Application/COPC</Value>
       <Value>../ThirdParty/libsfp</Value>
+      <Value>../BSP/UART</Value>
+      <Value>../BSP/Timer</Value>
+      <Value>../BSP/SPI</Value>
+      <Value>../Devices/MCP4921</Value>
+      <Value>../BSP/TWI</Value>
+      <Value>../Application/CMDLine</Value>
+      <Value>../Devices/NTC</Value>
+      <Value>../BSP/ADC</Value>
+      <Value>../Devices/TEC</Value>
+      <Value>../Application/Temperature</Value>
     </ListValues>
   </avrgcc.compiler.directories.IncludePaths>
-  <avrgcc.compiler.optimization.level>Optimize (-O1)</avrgcc.compiler.optimization.level>
   <avrgcc.compiler.optimization.OtherFlags>-fdata-sections</avrgcc.compiler.optimization.OtherFlags>
   <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
   <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
@@ -195,6 +202,18 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Application\CMDLine\cmdline.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Application\CMDLine\cmdline.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Application\CMDLine\command.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Application\CMDLine\command.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="Application\Common\inc\basetypedef.h">
       <SubType>compile</SubType>
     </Compile>
@@ -219,22 +238,76 @@
     <Compile Include="Application\SYS\sys.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="BSP\PDU_board.h">
+    <Compile Include="Application\Temperature\temperature.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="BSP\PDU_Timer\PDU_timer.c">
+    <Compile Include="Application\Temperature\temperature.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="BSP\PDU_Timer\PDU_timer.h">
+    <Compile Include="Application\WATCHDOG\watchdog.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="BSP\PDU_UART\uart.c">
+    <Compile Include="Application\WATCHDOG\watchdog.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="BSP\PDU_UART\uart.h">
+    <Compile Include="BSP\ADC\AD.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="BSP\PDU_version.h">
+    <Compile Include="BSP\ADC\AD.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="BSP\IOU_board.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="BSP\SPI\spi.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="BSP\SPI\spi.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="BSP\Timer\timer.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="BSP\Timer\timer.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="BSP\TWI\i2c.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="BSP\TWI\i2c.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="BSP\UART\uart.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="BSP\UART\uart.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="BSP\IOU_version.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Devices\MCP4921\MCP4921.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Devices\MCP4921\MCP4921.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Devices\NTC\ntc_10k.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Devices\NTC\ntc_10k.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Devices\TEC\TEC.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Devices\TEC\TEC.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Devices\TPL5010\TPL5010.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Devices\TPL5010\TPL5010.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="Scheduler\scheduler.c">
@@ -261,11 +334,22 @@
     <Folder Include="Application\LED" />
     <Folder Include="Application\Common" />
     <Folder Include="Application\COPC" />
+    <Folder Include="Application\CMDLine" />
+    <Folder Include="Application\WATCHDOG" />
+    <Folder Include="Application\Temperature" />
     <Folder Include="Application\SYS" />
     <Folder Include="BSP" />
     <Folder Include="Application" />
-    <Folder Include="BSP\PDU_UART" />
-    <Folder Include="BSP\PDU_Timer" />
+    <Folder Include="BSP\ADC" />
+    <Folder Include="BSP\TWI" />
+    <Folder Include="BSP\SPI" />
+    <Folder Include="BSP\UART" />
+    <Folder Include="BSP\Timer" />
+    <Folder Include="Devices" />
+    <Folder Include="Devices\MCP4921" />
+    <Folder Include="Devices\TPL5010" />
+    <Folder Include="Devices\TEC" />
+    <Folder Include="Devices\NTC" />
     <Folder Include="ThirdParty" />
     <Folder Include="Scheduler" />
     <Folder Include="ThirdParty\libsfp" />
