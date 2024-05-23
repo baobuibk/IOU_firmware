@@ -85,7 +85,7 @@ void usart0_init(void) {
     rbuffer_init(&p_UART0_meta->rb_tx);                             // Init Rx buffer
     rbuffer_init(&p_UART0_meta->rb_rx);                             // Init Tx buffer
 	UBRR0H=0;
-	UBRR0L=51;
+	UBRR0L=12;
 	UCSR0B |= (1<<RXEN)|(1<<TXEN)|(1<<RXCIE);					//enable TX, RX, RX interrupt
 	UCSR0C |= (1<<UCSZ1) | (1<<UCSZ0);
 	sei();

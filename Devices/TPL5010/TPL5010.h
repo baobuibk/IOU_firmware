@@ -11,6 +11,6 @@
 
 void	TPL5010_init (void);
 
-
+void	TPL5010_done_pulse (void);
 
 #endif /* TPL5010_H_ */

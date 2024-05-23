@@ -10,8 +10,9 @@
 
 static	void COPC_task_update(void);
 volatile static	ringbuffer_t *p_COPCBuffer;
-static	fsp_packet_t	s_COPC_FspPacket;
-static  COPC_Sfp_Payload_t	*s_pCOPC_Sfp_Payload;
+static	fsp_packet_t	s_COPC_RxFspPacket;
+static	fsp_packet_t	s_COPC_TxFspPacket;
+
 typedef struct COPC_TaskContextTypedef
 {
 	SCH_TASK_HANDLE               taskHandle;
@@ -30,13 +31,15 @@ static COPC_TaskContextTypedef           s_COPC_task_context =
 	}
 };
 
+void COPC_process_command(fsp_packet_t	*s_COPC_FspPacket);
+
 
 void	COPC_init(void)
 {	
 	usart1_init();
 	fsp_init(PDU_ADDRESS);
 	p_COPCBuffer = uart_get_uart1_rx_buffer_address();
-	s_pCOPC_Sfp_Payload = (COPC_Sfp_Payload_t *)(&s_COPC_FspPacket.payload);
+
 }
 
 static void COPC_task_update(void)
@@ -46,19 +49,13 @@ static void COPC_task_update(void)
 	{
 
 		rxData = rbuffer_remove(p_COPCBuffer);
-		switch ( fsp_decode(rxData,&s_COPC_FspPacket))
+		switch ( fsp_decode(rxData,&s_COPC_RxFspPacket))
 		{
 			//process command
             case FSP_PKT_NOT_READY:
 				break;
             case FSP_PKT_READY:
-				switch (s_pCOPC_Sfp_Payload->commonFrame.Cmd)
-				{
-					case	FSP_CMD_PDU_SINGLE_POWER_CONTROL:
-					{
-						
-					}
-				}	            
+				COPC_process_command(&s_COPC_RxFspPacket);	            
 	            break;
             case FSP_PKT_INVALID:
 				
@@ -82,3 +79,16 @@ void	COPC_create_task(void)
 	COPC_init();
 	SCH_TASK_CreateTask(&s_COPC_task_context.taskHandle, &s_COPC_task_context.taskProperty);
 }
+
+void COPC_process_command(fsp_packet_t	*s_COPC_FspPacket)
+{
+	COPC_Sfp_Payload_t	*s_pCOPC_Sfp_Payload = &(s_COPC_FspPacket->payload);
+	switch (s_pCOPC_Sfp_Payload->commonFrame.Cmd)
+		{
+			case	FSP_CMD_PDU_SINGLE_POWER_CONTROL:
+				{
+							
+				}
+		}
+}
+

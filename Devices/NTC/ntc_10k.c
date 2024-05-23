@@ -12,7 +12,7 @@
 #define _NTC_BETA             3950
 
 
-uint16_t get_temperature(uint8_t channel)
+uint16_t get_NTC_temperature(uint8_t channel)
 {
 	uint16_t	ADCVal  = adc_read(channel);
 	return ntc_convertToC_10times(ADCVal);

@@ -1,0 +1,48 @@
+/*
+ * IOU_data.h
+ *
+ * Created: 5/23/2024 11:49:09 AM
+ *  Author: Admin
+ */ 
+
+
+#ifndef IOU_DATA_H_
+#define IOU_DATA_H_
+
+#include <stdint.h>
+
+typedef	enum 
+{IOU_POWERUP=0, IOU_NORMAL, IOU_ERROR, IOU_RECEIVING_COMMAND} IOU_StateTypedef_t;
+	
+typedef struct __IRLed_DataTypeDef__
+{
+	uint8_t	status;			//0: disable; 1: enable
+	uint8_t	duty;			//0->100
+}	IRLed_DataTypeDef_t;
+typedef struct __RingLed_DataTypeDef__
+{
+	uint8_t	status;			//0: disable; 1: enable
+	uint8_t	Red;			//0->255
+	uint8_t	Green;			//0->255
+	uint8_t	Blue;			//0->255
+}	RingLed_DataTypeDef_t;
+typedef	struct _Temperature_CurrentStateTypedef_
+{
+	uint16_t					NTC_channel_temperature[2];
+	uint16_t					onewire_channel_temperature[2];
+	uint16_t					i2c_sensor_temperature;
+	uint16_t					channel_temperature_setpoint[2];
+	uint16_t				DAC_channel_Val[4];
+	uint8_t					tec_channel_enabled[4];
+	uint8_t					tec_channel_auto_control[4];
+}Temperature_CurrentStateTypedef_t;
+typedef struct __IOU_DataTypeDef__
+{
+	IOU_StateTypedef_t				IOU_State_Data;
+	Temperature_CurrentStateTypedef_t	IOU_TemperatureData;
+	IRLed_DataTypeDef_t				IOU_IRLedData;
+	RingLed_DataTypeDef_t			IOU_RingLedData;
+	}IOU_DataTypeDef_t;
+
+extern IOU_DataTypeDef_t	IOU_data;
+#endif /* IOU_DATA_H_ */

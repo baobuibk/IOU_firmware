@@ -28,6 +28,8 @@ BSP\TWI\i2c.c
 
 BSP\UART\uart.c
 
+Data_struct\IOU_data.c
+
 Devices\MCP4921\MCP4921.c
 
 Devices\NTC\ntc_10k.c

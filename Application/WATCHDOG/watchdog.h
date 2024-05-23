@@ -10,7 +10,7 @@
 #define WATCHDOG_H_
 
 
-
-
+void watchdog_init(void);
+void	watchdog_create_timer(void);
 
 #endif /* WATCHDOG_H_ */

@@ -48,12 +48,7 @@
 // Start Of Data byte
 #define FSP_PKT_SOD                     0x7E    /**< Start Of Data byte. */
 
-// Addresses
-#define FSP_ADR_COPC	                1       /**< COPC module address. */
-#define FSP_ADR_PMU                     2       /**< PMU module address. */
-#define FSP_ADR_PDU                     3       /**< PDU module address. */
-#define FSP_ADR_CAM	                    4       /**< CAM module address. */
-#define FSP_ADR_IOU	`	                5       /**< IOU module address. */
+
 
 // Types of packets
 #define FSP_PKT_TYPE_DATA               1       /**< Data packet. */

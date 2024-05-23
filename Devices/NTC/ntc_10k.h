@@ -49,7 +49,7 @@
 
 
 void init_adc(void);
-uint16_t get_temperature(uint8_t channel);
+uint16_t get_NTC_temperature(uint8_t channel);
 float ntc_convertToC(uint16_t adcValue);
 uint16_t ntc_convertToC_10times(uint16_t adcValue);
 #endif /* MEASUREMENTS_H_ */

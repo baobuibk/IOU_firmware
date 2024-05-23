@@ -9,6 +9,14 @@
 #ifndef TEMPERATURE_H_
 #define TEMPERATURE_H_
 
+#include "scheduler.h"
+#include "IOU_board.h"
+#include "ntc_10k.h"
+#include "MCP4921.h"
+#include "TEC.h"
+#include "uart.h"
+#include "IOU_data.h"
+
 void	temperature_init(void);
 void	temperature_create_task(void);
 void	temperature_set_point(uint16_t	setpoint, uint8_t channel);

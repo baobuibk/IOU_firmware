@@ -171,6 +171,9 @@
       <Value>../BSP/ADC</Value>
       <Value>../Devices/TEC</Value>
       <Value>../Application/Temperature</Value>
+      <Value>../Data_struct</Value>
+      <Value>../Devices/TPL5010</Value>
+      <Value>../Application/WATCHDOG</Value>
     </ListValues>
   </avrgcc.compiler.directories.IncludePaths>
   <avrgcc.compiler.optimization.OtherFlags>-fdata-sections</avrgcc.compiler.optimization.OtherFlags>
@@ -221,6 +224,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="Application\COPC\COPC.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Application\COPC\COPC_IOU.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="Application\LED\status_led.c">
@@ -284,6 +290,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="BSP\IOU_version.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Data_struct\IOU_data.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Data_struct\IOU_data.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="Devices\MCP4921\MCP4921.c">
@@ -350,6 +362,7 @@
     <Folder Include="Devices\TPL5010" />
     <Folder Include="Devices\TEC" />
     <Folder Include="Devices\NTC" />
+    <Folder Include="Data_struct" />
     <Folder Include="ThirdParty" />
     <Folder Include="Scheduler" />
     <Folder Include="ThirdParty\libsfp" />

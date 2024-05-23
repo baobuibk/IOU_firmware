@@ -25,12 +25,12 @@ typedef	struct StatusLed_CurrentStateTypedef
 {
 	uint8_t				led1:1;
 	uint8_t				led2:1;
-	Led_DisplayStateTypedef	state:6;	
-	}StatusLed_CurrentStateTypedef;
+	IOU_StateTypedef_t *			s_pIOU_Status ;
+	}StatusLed_CurrentStateTypedef_t;
 	
 /* Private variables ---------------------------------------------------------*/
 
-static	StatusLed_CurrentStateTypedef	s_led_display_status = {0,0,POWERUP};
+static StatusLed_CurrentStateTypedef_t	s_led_display_status;
 static Led_TaskContextTypedef           s_task_context =
 {
 	SCH_INVALID_TASK_HANDLE,                 // Will be updated by Schedular
@@ -49,10 +49,7 @@ static void status_led_led1_off(void);
 static void status_led_led2_on(void);
 static void status_led_led2_off(void);
 static	void	status_led_powerup(void);
-void	status_led_set_status(Led_DisplayStateTypedef status)
-{
-	s_led_display_status.state = status;
-}
+
 
 void status_led_init(void)
 {
@@ -62,7 +59,7 @@ void status_led_init(void)
 	LED2_DATA_PORT &= ~((1 << LED2_PIN));	
 	s_led_display_status.led1 = 0;
 	s_led_display_status.led2 = 0;
-	s_led_display_status.state = POWERUP;
+	s_led_display_status.s_pIOU_Status = &IOU_data.IOU_State_Data;
 	status_led_led1_off();
 	status_led_led2_off();
 	
@@ -89,17 +86,15 @@ static void status_led_led2_on(void)
 }
 void	status_led_update(void)
 {
-	switch (s_led_display_status.state) {
-	case POWERUP:
+	switch (*s_led_display_status.s_pIOU_Status) {
+	case IOU_POWERUP:
 		status_led_powerup();
 		break;
-	case NORMAL:
+	case IOU_NORMAL:
 		status_led_normal();
 		break;
-	case POWERING_SUB:
+	default:
 		break;
-	case OVERCURRENT:
-		break;	
 	}
 }
 static	void	status_led_powerup(void)

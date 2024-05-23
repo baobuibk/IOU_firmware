@@ -38,9 +38,9 @@ typedef struct SCH_TimerContextTypedef
 
 /* Private variables ---------------------------------------------------------*/
 static SCH_TaskContextTypedef   s_TaskContext[MAX_TASK];
-static uint8_t                  s_NumOfTaskScheduled;
+static uint8_t                  s_NumOfTaskScheduled = 0;
 static SCH_TimerContextTypedef  s_TimerContext[MAX_TIMERS];
-static uint8_t                  s_NumOfTimers;
+static uint8_t                  s_NumOfTimers = 0;
 
 volatile uint16_t               s_SystemTick;
 volatile uint16_t               s_SoftTimers[SCH_TIM_LAST];
@@ -59,14 +59,14 @@ volatile uint16_t               s_SoftTimers[SCH_TIM_LAST];
   *****************************************************************************/
 void SCH_Initialize(void)
 {
-  s_SystemTick = RESET;
-  s_NumOfTaskScheduled = RESET;
-  s_NumOfTimers = RESET;
+  s_SystemTick = 0;
+  s_NumOfTaskScheduled = 0;
+  s_NumOfTimers = 0;
   
   // Initial Schedular Context
-  memset((uint8_t*)&s_TaskContext[0], RESET, (sizeof(SCH_TaskContextTypedef) * MAX_TASK));
-  memset((uint8_t*)&s_TimerContext[0], RESET, (sizeof(SCH_TimerContextTypedef) * MAX_TIMERS));
-  memset((uint8_t*)&s_SoftTimers[0], RESET, (sizeof(uint32_t) * SCH_TIM_LAST));
+  memset((uint8_t*)&s_TaskContext[0], 0, (sizeof(SCH_TaskContextTypedef) * MAX_TASK));
+  memset((uint8_t*)&s_TimerContext[0], 0, (sizeof(SCH_TimerContextTypedef) * MAX_TIMERS));
+  memset((uint8_t*)&s_SoftTimers[0], 0, (sizeof(uint32_t) * SCH_TIM_LAST));
 
     // Initialize Schedular context
   timer_timer0_init();

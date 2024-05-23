@@ -61,7 +61,7 @@ typedef struct SCH_TaskPropertyTypedef
 typedef struct SCH_TimerPropertyTypedef
 {
 	SCH_TIMER_TYPE                timerType;
-	uint32_t                      timerPeriodInMS;
+	uint16_t                      timerPeriodInMS;
 	SCH_TimerCallback             timerCallbackFunction;
 } SCH_TimerPropertyTypedef;
 
