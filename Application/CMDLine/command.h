@@ -40,4 +40,13 @@ Cmd_TEC_set_output(int argc, char *argv[]);
 
 int
 Cmd_get_temp_setpoint(int argc, char *argv[]);
+
+int
+Cmd_tec_set_auto_voltage(int argc, char *argv[]);
+int
+Cmd_tec_get_status(int argc, char *argv[]);
+int
+Cmd_TEC_log_enable(int argc, char *argv[]);
+int
+Cmd_TEC_log_disable(int argc, char *argv[]);
 #endif /* COMMAND_H_ */

@@ -81,6 +81,7 @@ typedef enum SCH_SoftTimerTypedef
 {
 	SCH_TIM_FIRST = 0,
 	SCH_TIM_LED = SCH_TIM_FIRST,
+	SCH_TIM_TEMPERATURE_LOG ,
 	SCH_TIM_LAST
 } SCH_SoftTimerTypedef;
 

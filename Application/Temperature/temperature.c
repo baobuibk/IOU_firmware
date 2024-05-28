@@ -10,8 +10,13 @@
 
 
 const	uint16_t Kp = 2;
-#define	DAC_at_2_5		1551
-
+//#define	DAC_at_2_5					1551
+#define	DAC_at_2_5					3103
+#define	INCREASE_DECREASE_TIMES		500
+#define TEMPERATURE_LOG_PERIOD		1000
+#define TEC_OUT_DEFAULT						50	//	(1V)
+void	temperature_TEC_hysteris_control_heating(uint16_t	NTC_temperature, uint8_t NTC_channel, uint8_t	double_output);
+void	temperature_TEC_hysteris_control_cooling(uint16_t	NTC_temperature, uint8_t NTC_channel, uint8_t	double_output);
 static	void	temperature_task_update(void);
 typedef struct _Temperature_TaskContextTypedef_
 {
@@ -19,7 +24,8 @@ typedef struct _Temperature_TaskContextTypedef_
 	SCH_TaskPropertyTypedef       taskProperty;
 } Temperature_TaskContextTypedef;
 
-
+	int16_t		_DAC_channel0_Val;
+	int16_t		_DAC_channel1_Val;
 
 static Temperature_TaskContextTypedef           s_temperature_task_context =
 {
@@ -27,7 +33,7 @@ static Temperature_TaskContextTypedef           s_temperature_task_context =
 	{
 		SCH_TASK_SYNC,                      // taskType;
 		SCH_TASK_PRIO_0,                    // taskPriority;
-		1000,                                // taskPeriodInMS;
+		10,                                // taskPeriodInMS;
 		temperature_task_update                // taskFunction;
 	}
 };
@@ -36,32 +42,38 @@ static	Temperature_CurrentStateTypedef_t	s_Temperature_CurrentState =
 {
 
 	{
-	250,
-	250
-	},
+	0,
+	0
+},	//NTC_channel_temperature[2];
+	{
+	0,
+	0
+	},		//onewire_channel_temperature[2];
+	0,		//i2c_sensor_temperature
 	{
 	250,
 	250
-	},
-	250,
+	},			//channel_temperature_setpoint[2] set point is 25.0
+	{TEC_OUT_DEFAULT,
+	TEC_OUT_DEFAULT,
+	TEC_OUT_DEFAULT,
+	TEC_OUT_DEFAULT},	//TEC_output_voltage
+	0,					//TEC_status;	// tec3_auto tec3_ena tec2_auto tec2_ena tec1_auto tec1_ena tec0_auto tec0_ena
 	{
-	250,
-	250
-	},			//set point is 25.0
-	{DAC_at_2_5,
-	DAC_at_2_5,
-	DAC_at_2_5,
-	DAC_at_2_5},
-	{0,
+		0,
+		0,
+		0,
+		0
+	},
 	0,
-	0,
-	0},
-	{0,
-	0,
-	0,
-	0}
+	{
+		HEATING,		//HEAT mode
+		HEATING
+	}
 	};
 
+static	uint16_t	sTemperatureTimeCount[2] = {0,0};
+static	uint8_t		sPrintLog = 0;
 void	temperature_init(void)
 {
 	uint8_t	idx;
@@ -70,73 +82,191 @@ void	temperature_init(void)
 	MCP4921_init();
 	SPI_Init();
 
-	for(idx =0; idx < 4; idx ++)	TEC_shutdown(idx);
-	uint16_t	data = DAC_at_2_5;
-	MCP4291_set_output(data, 0, 0, 1, 0);	//enable channel 0
-//	TEC_enable(0);
-//	s_Temperature_CurrentState.channel_enabled[0] = 1;
+	for(idx =0; idx < 4; idx ++)	
+	{
+		TEC_shutdown(idx);
+		temperature_set_TEC_output(idx, HEATING, TEC_OUT_DEFAULT);
+	}
+
 }
 
 void	temperature_enable_channel(uint8_t channel)
 {
 	TEC_enable(channel);
-	s_Temperature_CurrentState.tec_channel_enabled[channel] = 1;
+	s_Temperature_CurrentState.TEC_status |= (1 << (channel*2));
 }
 
 void	temperature_disable_channel(uint8_t channel)
 {
 	TEC_shutdown(channel);
-	s_Temperature_CurrentState.tec_channel_enabled[channel] = 0;
+	s_Temperature_CurrentState.TEC_status &= ~(1 << (channel*2));
 }
 
 static	void	temperature_task_update(void)
 {
-	uint16_t		_NTC_channel0_temperature = get_NTC_temperature(0);
-	uint16_t		_NTC_channel1_temperature = get_NTC_temperature(1);
-	
-//_channel0_temperature = 230;		//230 mean 23.0
-	
-
-	uint16_t		_temperature_setpoint_channel0 = s_Temperature_CurrentState.channel_temperature_setpoint[0];
-	uint16_t		_temperature_setpoint_channel1 = s_Temperature_CurrentState.channel_temperature_setpoint[1];
-	int16_t		_DAC_channel0_Val;
-	int16_t		_DAC_channel1_Val;
-		s_Temperature_CurrentState.NTC_channel_temperature[0] = _NTC_channel0_temperature;
-		s_Temperature_CurrentState.NTC_channel_temperature[1] = _NTC_channel1_temperature;
-//		UARTprintf("current temp = %d and set point = %d \r\n", _channel0_temperature, _temperature_setpoint );
-		if ((s_Temperature_CurrentState.tec_channel_enabled[0]) && (s_Temperature_CurrentState.tec_channel_auto_control[0]))
+		uint16_t		_NTC_channel0_temperature = get_NTC_temperature(0);
+		uint16_t		_NTC_channel1_temperature = get_NTC_temperature(1);
+		if ((s_Temperature_CurrentState.TEC_status & (1 << TEC0_AUTO)) == (1 << TEC0_AUTO))		//channel 0 is enabled and auto
 		{
-			if (_NTC_channel0_temperature > _temperature_setpoint_channel0)	//provide higher V+ voltage to make closer to 2.5V
+//			UARTprintf("channel 0 auto control\r\n");
+			if (s_Temperature_CurrentState.mode[0] == HEATING)
 			{
-//				UARTprintf("Increase DAC \r\n"); 
-				_DAC_channel0_Val = s_Temperature_CurrentState.DAC_channel_Val[0] + Kp*(_NTC_channel0_temperature - _temperature_setpoint_channel0);
+//				UARTprintf("HEATING\r\n");
+				temperature_TEC_hysteris_control_heating(_NTC_channel0_temperature, 0, 1);
 			}
-			else 
+			else
 			{
-//				UARTprintf("Decrease DAC \r\n"); 
-				_DAC_channel0_Val = s_Temperature_CurrentState.DAC_channel_Val[0] - Kp*(_temperature_setpoint_channel0 - _NTC_channel1_temperature);	
+//				UARTprintf("COOLING\r\n");
+				temperature_TEC_hysteris_control_cooling(_NTC_channel0_temperature, 0, 1);
 			}
-			if (_DAC_channel0_Val < 0)	_DAC_channel0_Val = 0;
-			if (_DAC_channel0_Val > 0x0FFFFF)	_DAC_channel0_Val = 0x0FFF;
-			MCP4291_set_output(_DAC_channel0_Val, 0, 0, 1, 0);
-			s_Temperature_CurrentState.DAC_channel_Val[0] = _DAC_channel0_Val;
-//			dummy = _channel0_temperature;
-//			UARTprintf("temperature channel 0 is %d Celcius \r\n", dummy); 
-			
-		}
-		if ((s_Temperature_CurrentState.tec_channel_enabled[1]) && s_Temperature_CurrentState.tec_channel_auto_control[1])
-		{
-			if (_NTC_channel1_temperature > _temperature_setpoint_channel1)			//provide higher V+ voltage to make closer to 2.5V
-			{
-				_DAC_channel1_Val = s_Temperature_CurrentState.DAC_channel_Val[1] + Kp*(_NTC_channel0_temperature - _temperature_setpoint_channel1);
-			}
-			else _DAC_channel1_Val = s_Temperature_CurrentState.DAC_channel_Val[1] - Kp*(_NTC_channel1_temperature - _temperature_setpoint_channel1);
-			if (_DAC_channel1_Val < 0)			_DAC_channel1_Val = 0;
-			if (_DAC_channel1_Val > 0x0FFFFF)	_DAC_channel1_Val = 0x0FFF;	
-			MCP4291_set_output(_DAC_channel1_Val, 0, 0, 1, 1);	
-			s_Temperature_CurrentState.DAC_channel_Val[1] = _DAC_channel1_Val;
 		}
 		
+		if ((s_Temperature_CurrentState.TEC_status & (1 << TEC2_AUTO)) == (1 << TEC2_AUTO))		//channel 0 is enabled and auto
+		{
+			if (s_Temperature_CurrentState.mode[1] == HEATING)
+			{
+				temperature_TEC_hysteris_control_heating(_NTC_channel1_temperature, 1, 1);
+			}
+			else
+			{
+				temperature_TEC_hysteris_control_cooling(_NTC_channel1_temperature, 1, 1);
+			}
+		}		
+		s_Temperature_CurrentState.NTC_channel_temperature[0] = _NTC_channel0_temperature;
+		s_Temperature_CurrentState.NTC_channel_temperature[1] = _NTC_channel1_temperature;
+		if (SCH_TIM_HasCompleted(SCH_TIM_TEMPERATURE_LOG))
+		{
+			if (sPrintLog)
+			{
+				SCH_TIM_Start(SCH_TIM_TEMPERATURE_LOG,TEMPERATURE_LOG_PERIOD);
+				temperature_get_status();
+			}
+		}	
+
+}
+
+//if double output is enabled, turn on both output 0 and 1 if temperature is measuring based on NTC channel 0
+void	temperature_TEC_hysteris_control_heating(uint16_t	NTC_temperature, uint8_t NTC_channel, uint8_t	double_output)
+{
+		//		if NTC channel and automatic control
+//		UARTprintf("TEC  %d is controlling heating\r\n", NTC_channel);
+//		UARTprintf("NTCchannel is %d\r\n",NTC_channel);
+			if (!(s_Temperature_CurrentState.TEC_status & (1<<(NTC_channel *2 * 2))))		//TEC is disabling
+			{
+//				UARTprintf("TEC %d is disabling\r\n", NTC_channel);
+				if (NTC_temperature < s_Temperature_CurrentState.channel_temperature_setpoint[NTC_channel] - TEMPERATURE_HYSTERIS)
+				{
+					TEC_enable(NTC_channel*2);
+					s_Temperature_CurrentState.TEC_status |= 1 << (NTC_channel *2* 2);
+					if (double_output)
+					{
+						TEC_enable(NTC_channel*2 + 1);
+						s_Temperature_CurrentState.TEC_status |= 1 << ((NTC_channel*2+1)*2);
+					}
+					
+				}
+				else  // Temperature is higher than setpoint  but TEC is disabled
+				if (NTC_temperature >  (s_Temperature_CurrentState.channel_temperature_setpoint[NTC_channel] - TEMPERATURE_HYSTERIS)) 
+				{
+//					check if temperature is still increasing, add to the time count
+					if ((NTC_temperature >  s_Temperature_CurrentState.NTC_channel_temperature[NTC_channel])  ||(NTC_temperature >  (s_Temperature_CurrentState.channel_temperature_setpoint[NTC_channel] + TEMPERATURE_MAX_ERROR)))
+					{
+						sTemperatureTimeCount[NTC_channel]++;
+//						if the temperature keep increasing without the TEC turned on, switch to COOL mode
+						if (sTemperatureTimeCount[NTC_channel] > INCREASE_DECREASE_TIMES)
+						{
+							s_Temperature_CurrentState.mode[NTC_channel] = COOLING;
+							sTemperatureTimeCount[NTC_channel] = 0;
+							if ((sPrintLog)) UARTprintf("LOG:NTC channel %d Switch to COOLING mode \r\n", NTC_channel);
+							temperature_set_TEC_output(NTC_channel * 2 , COOLING,s_Temperature_CurrentState.TEC_output_voltage[NTC_channel * 2] );
+							temperature_set_TEC_output(NTC_channel * 2 + 1, COOLING,s_Temperature_CurrentState.TEC_output_voltage[NTC_channel * 2 +1] );
+							
+						}
+					}
+
+				}
+			}
+				
+				else  //TEC is enabling
+				{
+//					UARTprintf("TEC %d is enabling\r\n", NTC_channel);
+				if (NTC_temperature > s_Temperature_CurrentState.channel_temperature_setpoint[NTC_channel] + TEMPERATURE_HYSTERIS)
+				{
+//					UARTprintf("TEC %d shutdown\r\n", NTC_channel);
+					TEC_shutdown(NTC_channel*2);
+					s_Temperature_CurrentState.TEC_status &= ~(1 << (NTC_channel * 2 *2));
+					if (double_output)
+					{
+						TEC_shutdown(NTC_channel*2 + 1);
+						s_Temperature_CurrentState.TEC_status &= ~(1 << ((NTC_channel * 2 + 1) *2));
+					}
+					
+				}										
+				}
+			
+		
+}
+
+//if double output is enabled, turn on both output 0 and 1 if temperature is measuring based on NTC channel 0
+//if double output is enabled, turn on both output 0 and 1 if temperature is measuring based on NTC channel 0
+void	temperature_TEC_hysteris_control_cooling(uint16_t	NTC_temperature, uint8_t NTC_channel, uint8_t	double_output)
+{
+	//		if NTC channel and automatic control
+//	UARTprintf("TEC %d is controlling cooling\r\n", NTC_channel);
+	if (!(s_Temperature_CurrentState.TEC_status & (1<<(NTC_channel *2*2))))		//TEC is disabling
+	{
+//		UARTprintf("TEC is disabling\r\n");
+		if (NTC_temperature > s_Temperature_CurrentState.channel_temperature_setpoint[NTC_channel] + TEMPERATURE_HYSTERIS)
+		{
+			TEC_enable(NTC_channel*2);
+			s_Temperature_CurrentState.TEC_status |= 1 << (NTC_channel * 2 *2);
+			if (double_output)
+			{
+				TEC_enable(NTC_channel*2 + 1);
+				s_Temperature_CurrentState.TEC_status |= 1 << ((NTC_channel*2+1)*2);
+			}
+			
+		}
+		else  // Temperature is lower than setpoint  but TEC is disabled
+		if (NTC_temperature <  (s_Temperature_CurrentState.channel_temperature_setpoint[NTC_channel] - TEMPERATURE_HYSTERIS))
+		{
+			//					check if temperature is still increasing, add to the time count
+			if ((NTC_temperature <  s_Temperature_CurrentState.NTC_channel_temperature[NTC_channel])  ||(NTC_temperature <  (s_Temperature_CurrentState.channel_temperature_setpoint[NTC_channel] - TEMPERATURE_MAX_ERROR)))
+			{
+				sTemperatureTimeCount[NTC_channel]++;
+				//						if the temperature keep increasing without the TEC turned on, switch to COOL mode
+				if (sTemperatureTimeCount[NTC_channel] > INCREASE_DECREASE_TIMES)
+				{
+					s_Temperature_CurrentState.mode[NTC_channel] = HEATING;
+					sTemperatureTimeCount[NTC_channel] = 0;
+					if ((sPrintLog)) UARTprintf("LOG: NTC channel %d Switch to HEATING mode\r\n",NTC_channel);
+					temperature_set_TEC_output(NTC_channel * 2 , HEATING,s_Temperature_CurrentState.TEC_output_voltage[NTC_channel * 2] );
+					temperature_set_TEC_output(NTC_channel * 2 + 1, HEATING,s_Temperature_CurrentState.TEC_output_voltage[NTC_channel * 2 +1] );
+					
+				}
+			}
+
+		}
+	}
+	
+	else  //TEC is enabling
+	{
+//		UARTprintf("TEC %d is enabling\r\n",NTC_channel);
+		if (NTC_temperature < s_Temperature_CurrentState.channel_temperature_setpoint[NTC_channel] - TEMPERATURE_HYSTERIS)
+		{
+//			UARTprintf("TEC shutdown\r\n");
+			TEC_shutdown(NTC_channel*2);
+			s_Temperature_CurrentState.TEC_status &= ~(1 << (NTC_channel * 2 *2));
+			if (double_output)
+			{
+				TEC_shutdown(NTC_channel*2 + 1);
+				s_Temperature_CurrentState.TEC_status &= ~(1 << ((NTC_channel * 2 + 1) *2));
+			}
+			
+		}
+	}
+	
+	
 }
 
 void	temperature_create_task(void)
@@ -157,33 +287,33 @@ uint16_t	temperature_get_NTC(uint8_t	channel)
 void	temperature_enable_TEC(uint8_t	channel)
 {
 	TEC_enable(channel);
-	s_Temperature_CurrentState.tec_channel_enabled[channel] = 1;
+	s_Temperature_CurrentState.TEC_status |= (1 << (2*channel));
 }
 
 void	temperature_disable_TEC(uint8_t	channel)
 {
 	TEC_shutdown(channel);
-	s_Temperature_CurrentState.tec_channel_enabled[channel] = 0;
+	s_Temperature_CurrentState.TEC_status &= ~ (1 << (2*channel));
 }
-
 void	temperature_enable_auto_control_TEC(uint8_t	channel)
 {
-	s_Temperature_CurrentState.tec_channel_auto_control[channel] = 1;
+	s_Temperature_CurrentState.TEC_status |=  (1 << (2*channel + 1));
+	temperature_set_TEC_output(channel , s_Temperature_CurrentState.mode[channel>>1],s_Temperature_CurrentState.TEC_output_voltage[channel] );	
 }
 
 void	temperature_disable_auto_control_TEC(uint8_t	channel)
 {
-	s_Temperature_CurrentState.tec_channel_auto_control[channel] = 0;
+	s_Temperature_CurrentState.TEC_status &=  ~(1 << (2*channel + 1));
 }
 // set the output of the TEC manually
 //@param	channel: 0-3
-//@param	HeatCool: 1 HEAT, 0 COOL
+//@param	HeatCool: 0 HEAT, 1 COOL
 //@voltage	Real Voltage multiply with 100
 void    temperature_set_TEC_output(uint8_t channel, uint8_t HeatCool, uint16_t	voltage)
 {
 	uint32_t	_delta = ((uint32_t)voltage * 4096) / 759;
 	uint32_t	_adcVal ;
-	if (HeatCool == 1)		//want HEAT
+	if (HeatCool == HEATING)		//want HEAT
 	{
 		_adcVal = DAC_at_2_5 - _delta;
 	}
@@ -192,11 +322,38 @@ void    temperature_set_TEC_output(uint8_t channel, uint8_t HeatCool, uint16_t	v
 		_adcVal = DAC_at_2_5 + _delta;
 	}
 	_adcVal = _adcVal >> 1;
-	s_Temperature_CurrentState.DAC_channel_Val[channel] = _adcVal;
 	MCP4291_set_output((uint16_t)_adcVal, 0, 1, 1, channel);
 }
 
 uint16_t	temperature_get_setpoint(uint8_t	channel)
 {
 	return s_Temperature_CurrentState.channel_temperature_setpoint[channel];
+}
+
+void	temperature_set_auto_voltage(uint8_t	channel, uint16_t voltage)
+{
+	 s_Temperature_CurrentState.TEC_output_voltage[channel] = voltage;
+}
+
+void	temperature_get_status(void)
+{
+	uint8_t	_status = s_Temperature_CurrentState.TEC_status;
+	
+	UARTprintf("\r\n%d %d ", s_Temperature_CurrentState.NTC_channel_temperature[0], s_Temperature_CurrentState.NTC_channel_temperature[1]);
+	
+	UARTprintf("%d %d %d %d %d %d %d %d\r\n", ((_status & (1 << TEC0_ENA)) >> TEC0_ENA), ((_status & (1 << TEC1_ENA)) >> TEC1_ENA),
+									 ((_status & (1 << TEC2_ENA)) >> TEC2_ENA), ((_status & (1 <<TEC3_ENA)) >> TEC3_ENA),
+									s_Temperature_CurrentState.mode[0], s_Temperature_CurrentState.mode[1],	
+									s_Temperature_CurrentState.channel_temperature_setpoint[0], s_Temperature_CurrentState.channel_temperature_setpoint[1]);
+
+}
+
+void	temperature_enable_log(void)
+{
+	sPrintLog  = 1;
+}
+
+void	temperature_disable_log(void)
+{
+	sPrintLog  = 0;
 }

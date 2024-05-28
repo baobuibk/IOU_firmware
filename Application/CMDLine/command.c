@@ -20,7 +20,7 @@ typedef struct _Command_TaskContextTypedef_
 
 
 //typedef enum{OK = 0, CMDLINE_BAD_CMD, CMDLINE_TOO_MANY_ARGS, CMDLINE_TOO_FEW_ARGS, CMDLINE_INVALID_ARG} command_error_code_t;
-const char * ErrorCode[5] = {"OK\r\n", "CMDLINE_BAD_CMD\r\n", "CMDLINE_TOO_MANY_ARGS\r\n",
+const char  * ErrorCode[5] = {"OK\r\n", "CMDLINE_BAD_CMD\r\n", "CMDLINE_TOO_MANY_ARGS\r\n",
 "CMDLINE_TOO_FEW_ARGS\r\n", "CMDLINE_INVALID_ARG\r\n" };
 
 static	void	command_task_update(void);
@@ -33,6 +33,10 @@ tCmdLineEntry g_psCmdTable[] = { { "set_temp", Cmd_set_temp," : set desired temp
 								{"tec_dis_auto", Cmd_TEC_disable_auto_control, " : disable auto control, format tec_dis_auto channel"},
 								{"tec_ena_auto", Cmd_TEC_enable_auto_control, " :  enable auto control,  format: tec_ena_auto channel"},
 								{"tec_set_output", Cmd_TEC_set_output, " :  set the output manually,  format: tec_set_output channel heat_cool(0:COOL, 1: HEAT) voltage(150 mean 1.5)"},	
+								{"tec_set_auto_voltage", Cmd_tec_set_auto_voltage, " :  set the voltage for auto control mode,  format: tec_set_auto_voltage channel  voltage	(150 mean 1.5)"},
+								{"tec_get_status", Cmd_tec_get_status, " :  get tec status,  format: tec_get_status, response ntc0 ntc1 tec0_stat tec1_stat tec2_stat tec3_stat H/C0 H/C1"},
+								{"tec_log_ena", Cmd_TEC_log_enable, " : enable periodic log, format: tec_log_ena"},
+								{"tec_log_dis", Cmd_TEC_log_disable, " : disable periodic log, format: tec_log_ena"},
 								{0,0,0}
 								};
 
@@ -141,6 +145,27 @@ Cmd_set_temp(int argc, char *argv[])
 	UARTprintf("Channel %d set point is %d \r\n",channel, _setpoint);
 	return CMDLINE_OK;
 }
+
+
+
+//*****************************************************************************
+//
+// Format: tec_set_auto_voltage channel auto_voltage
+//
+//*****************************************************************************
+int
+Cmd_tec_set_auto_voltage(int argc, char *argv[]) 
+{
+	  if (argc < 3) return CMDLINE_TOO_FEW_ARGS;
+	  if (argc >3) return CMDLINE_TOO_MANY_ARGS;
+	  uint8_t channel = atoi(argv[1]);
+	  if (channel > 3)	return CMDLINE_INVALID_ARG;
+	  
+	uint16_t	_voltage = atoi(argv[2]);
+	temperature_set_auto_voltage( channel, _voltage);
+	UARTprintf("Channel %d auto voltage is %d \r\n",channel, _voltage);
+	return CMDLINE_OK;
+}
 //*****************************************************************************
 //
 // Format: TEC_ena channel 
@@ -166,6 +191,12 @@ Cmd_TEC_disable(int argc, char *argv[])
 {
 		  if (argc < 2) return CMDLINE_TOO_FEW_ARGS;
 		  if (argc >2) return CMDLINE_TOO_MANY_ARGS;
+		  if (!strcmp(argv[1], "a"))	
+		  {
+			  for (uint8_t udx=0; udx < 3; udx++)	 temperature_disable_TEC(udx);
+			  UARTprintf("disabled all channel\r\n");
+			  return CMDLINE_OK;
+		  }
 		  uint8_t channel = atoi(argv[1]);
 		  if (channel > 4)	return CMDLINE_INVALID_ARG;
 		  temperature_disable_TEC(channel);
@@ -183,8 +214,10 @@ Cmd_TEC_enable_auto_control(int argc, char *argv[])
 		  if (argc < 2) return CMDLINE_TOO_FEW_ARGS;
 		  if (argc >2) return CMDLINE_TOO_MANY_ARGS;
 		  uint8_t channel = atoi(argv[1]);
-		  if (channel > 4)	return CMDLINE_INVALID_ARG;
-		  temperature_enable_auto_control_TEC(channel);
+		  if (channel > 2)	return CMDLINE_INVALID_ARG;
+		  temperature_enable_auto_control_TEC(channel << 1);
+		  temperature_disable_TEC(channel*2);
+		  temperature_disable_TEC(channel*2 + 1);
 		  return CMDLINE_OK;
 }
 
@@ -199,8 +232,9 @@ Cmd_TEC_disable_auto_control(int argc, char *argv[])
 		  if (argc < 2) return CMDLINE_TOO_FEW_ARGS;
 		  if (argc >2) return CMDLINE_TOO_MANY_ARGS;
 		  uint8_t channel = atoi(argv[1]);
-		  if (channel > 4)	return CMDLINE_INVALID_ARG;
-		  temperature_disable_auto_control_TEC(channel);
+		  if (channel > 2)	return CMDLINE_INVALID_ARG;
+		  temperature_disable_auto_control_TEC(channel << 1);
+		  
 		  return CMDLINE_OK;
 }
 
@@ -223,6 +257,38 @@ Cmd_get_temp(int argc, char *argv[])
 	 return CMDLINE_OK;
 	 
 }
+
+int
+Cmd_tec_get_status(int argc, char *argv[])
+{
+
+	if (argc >1) return CMDLINE_TOO_MANY_ARGS;
+	temperature_get_status();
+	return CMDLINE_OK;
+	
+}
+
+
+
+int
+Cmd_TEC_log_enable(int argc, char *argv[])
+{
+
+	if (argc >1) return CMDLINE_TOO_MANY_ARGS;
+	temperature_enable_log();
+	return CMDLINE_OK;
+	
+}
+
+int
+Cmd_TEC_log_disable(int argc, char *argv[])
+{
+
+	if (argc >1) return CMDLINE_TOO_MANY_ARGS;
+	temperature_disable_log();
+	return CMDLINE_OK;
+	
+}
 //*****************************************************************************
 //
 // Format: tec_set_output channel heat_cool(0:COOL, 1: HEAT) voltage(150 mean 1.5)
@@ -239,7 +305,7 @@ Cmd_TEC_set_output(int argc, char *argv[])
 	  uint8_t _heatCool = atoi(argv[2]);
 	  uint8_t _channel = atoi(argv[1]);
 	  uint16_t	_voltage = atoi(argv[3]);
-		if (_channel > 4)	return CMDLINE_INVALID_ARG;
+		if (_channel >=4 )	return CMDLINE_INVALID_ARG;
 	 temperature_set_TEC_output(_channel, _heatCool, _voltage);
 	 return CMDLINE_OK;
 	 
@@ -269,30 +335,30 @@ void	command_create_task(void)
 void	command_send_splash(void)
 {
 //	    usart0_send_string("                                                                   \r\n");
-	    usart0_send_string("\r\n");
-//	    usart0_send_string("                                                                   \r\n");
-	    usart0_send_string("\r\n");
-	    usart0_send_string("...................................................................\r\n");
-	    usart0_send_string("\r\n");
-	    usart0_send_string("...................................................................\r\n");
-	    usart0_send_string("..........                                               ..........\r\n");
-	    usart0_send_string("\r\n");
-	    usart0_send_string("..........  ____                       _          _      ..........\r\n");
-	    usart0_send_string(".......... / ___| _ __   __ _  ___ ___| |    __ _| |__   ..........\r\n");
-	    usart0_send_string(".......... \\___ \\| '_ \\ / _` |/ __/ _ \\ |   / _` | '_ \\  ..........\r\n");
-	    usart0_send_string("..........  ___) | |_) | (_| | (_|  __/ |__| (_| | |_) | ..........\r\n");
-	    usart0_send_string(".......... |____/| .__/ \\__,_|\\___\\___|_____\\__,_|_.__/  ..........\r\n");
-	    usart0_send_string("..........       |_|                                     ..........\r\n");
-	    usart0_send_string("..........                                               ..........\r\n");
-	    usart0_send_string("..........        _____ ____  ____    ____    ___        ..........\r\n");
-	    usart0_send_string("..........       | ____|  _ \\/ ___|  |___ \\  / _ \\       ..........\r\n");
-	    usart0_send_string("..........       |  _| | |_) \\___ \\    __) || | | |      ..........\r\n");
-	    usart0_send_string("..........       | |___|  __/ ___) |  / __/ | |_| |      ..........\r\n");
-	    usart0_send_string("..........       |_____|_|   |____/  |_____(_)___/       ..........\r\n");
-	    usart0_send_string("..........                                               ..........\r\n");
-	    usart0_send_string("..........                                               ..........\r\n");
-	    usart0_send_string("...................................................................\r\n");
-	    usart0_send_string("...................................................................\r\n");
+	    //usart0_send_string("\r\n");
+////	    usart0_send_string("                                                                   \r\n");
+	    //usart0_send_string("\r\n");
+	    //usart0_send_string("...................................................................\r\n");
+	    //usart0_send_string("\r\n");
+	    //usart0_send_string("...................................................................\r\n");
+	    //usart0_send_string("..........                                               ..........\r\n");
+	    //usart0_send_string("\r\n");
+	    //usart0_send_string("..........  ____                       _          _      ..........\r\n");
+	    //usart0_send_string(".......... / ___| _ __   __ _  ___ ___| |    __ _| |__   ..........\r\n");
+	    //usart0_send_string(".......... \\___ \\| '_ \\ / _` |/ __/ _ \\ |   / _` | '_ \\  ..........\r\n");
+	    //usart0_send_string("..........  ___) | |_) | (_| | (_|  __/ |__| (_| | |_) | ..........\r\n");
+	    //usart0_send_string(".......... |____/| .__/ \\__,_|\\___\\___|_____\\__,_|_.__/  ..........\r\n");
+	    //usart0_send_string("..........       |_|                                     ..........\r\n");
+	    //usart0_send_string("..........                                               ..........\r\n");
+	    //usart0_send_string("..........        _____ ____  ____    ____    ___        ..........\r\n");
+	    //usart0_send_string("..........       | ____|  _ \\/ ___|  |___ \\  / _ \\       ..........\r\n");
+	    //usart0_send_string("..........       |  _| | |_) \\___ \\    __) || | | |      ..........\r\n");
+	    //usart0_send_string("..........       | |___|  __/ ___) |  / __/ | |_| |      ..........\r\n");
+	    //usart0_send_string("..........       |_____|_|   |____/  |_____(_)___/       ..........\r\n");
+	    //usart0_send_string("..........                                               ..........\r\n");
+	    //usart0_send_string("..........                                               ..........\r\n");
+	    //usart0_send_string("...................................................................\r\n");
+	    //usart0_send_string("...................................................................\r\n");
 //	    usart0_send_string("                                                                   \r\n");
 		usart0_send_string("> ");
 }

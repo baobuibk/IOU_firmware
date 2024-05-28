@@ -31,6 +31,16 @@ void timer_timer0_init(void)
 
 	  // initialize compare value (tick every 1ms)
 	  OCR0 = 125 - 1;
-
-
 }
+
+//void timer_timer1_init(void)
+//{
+	//// set up timer with prescaler = 64 and CTC mode
+//
+//
+	//// initialize counter
+	//TCNT1 = 0;
+//
+	//// initialize compare value (tick every 1ms)
+	//OCR1 = 100 - 1;
+//}

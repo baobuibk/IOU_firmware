@@ -20,6 +20,7 @@
 #include <util/delay.h>
 int main(void)
 {
+	
     /* Replace with your application code */
 	status_led_init();
 	command_init();
@@ -40,10 +41,10 @@ int main(void)
 //	MCP4921_init();
 //	uint16_t	data = 0;
 //	init_adc();
-	temperature_set_TEC_output(0, 0, 250);	//1.50 V
-	temperature_set_TEC_output(1, 0, 250);	//1.50 V
-	temperature_set_TEC_output(2, 0, 250);	//1.50 V
-	temperature_set_TEC_output(3, 0, 250);	//1.50 V
+	//temperature_set_TEC_output(0, 0, 250);	//1.50 V
+	//temperature_set_TEC_output(1, 0, 250);	//1.50 V
+	//temperature_set_TEC_output(2, 0, 250);	//1.50 V
+	//temperature_set_TEC_output(3, 0, 250);	//1.50 V
 	
 	while (1)
 	{

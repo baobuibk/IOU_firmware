@@ -12,7 +12,9 @@ void SPI_Init(void)
 {
 	
 
-	         
+	 	MCP2515_SS0_DDR |= (1 << MCP2515_SS0_PIN);
+	 	MCP2515_SS0_PORT |= (1 << MCP2515_SS0_PIN);      //kh?i ??ng chân SS là output và xu?t 1 tr??c khi kh?i ??ng SPI
+		   
 	// make the MOSI, SCK, and SS pins outputs
 	SPI_DDR |= ( 1 << SPI_MOSI ) | ( 1 << SPI_SCK ) ;
 
@@ -23,7 +25,7 @@ void SPI_Init(void)
 	//  clock polarity and phase = 0, F_osc/16
 	SPI_SPCR |= ( 1 << SPI_SPE ) | ( 1 << SPI_MSTR ) | ( 1 << SPI_SPR0 );
 	
-	
+
 
 }
 
